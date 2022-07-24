@@ -1,9 +1,11 @@
 import socket
+import threading
+import serverFunction
+from constants import *
 
-PORT = 5000
 IP = socket.gethostbyname(socket.gethostname())
-HEADER = 64
-FORMAT = "utf-8"
+
+clients = {}
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((IP, PORT))
@@ -13,11 +15,14 @@ s.listen()
 
 while True:
     clientSocket, address = s.accept()
-    print(f"[CONNECTION] Connection established from {address}")
 
-    len_msg = clientSocket.recv(HEADER).decode(FORMAT)
-    msg = clientSocket.recv(int(len_msg)).decode(FORMAT)
+    len_nick = clientSocket.recv(HEADER).decode(FORMAT)
+    nickname = clientSocket.recv(int(len_nick)).decode(FORMAT)
 
-    print(f"[MESSAGE] Client {address} writes: {msg}")
-    clientSocket.send(bytes("Welcome to the server!!!","utf-8"))
-    clientSocket.close()
+    clients[clientSocket] = nickname
+
+    thread = threading.Thread(target=serverFunction.client_interaction, args=(clientSocket, address, nickname))
+    thread.start()
+
+    print(f"[CONNECTION] Connection established with {nickname}. Sending to others...")
+    serverFunction.broadcast(clients, clientSocket, f"{nickname} connected", str(len(f"{nickname} connected")))

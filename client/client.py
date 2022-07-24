@@ -1,17 +1,17 @@
 import socket
+import threading
+import clientFunction
+from constants import *
 
-PORT = 5000
 IP = socket.gethostbyname(socket.gethostname())
-FORMAT = "utf-8"
 
-try:
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((IP, PORT))
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect((IP, PORT))
 
-    message = input("Type a message to send to the server: ").encode(FORMAT)
-    len_msg = str(len(message)).encode(FORMAT)
+nickname = input("Type your nickname: ")
 
-    s.send(len_msg)
-    s.send(message)
-except socket.error:
-    print(f"Error in connection to the server")
+send_thread = threading.Thread(target=clientFunction.send, args=(s, nickname))
+send_thread.start()
+
+receive_thread = threading.Thread(target=clientFunction.receive)
+receive_thread.start()
