@@ -1,28 +1,19 @@
-import socket
 import threading
-import serverFunction
-from constants import *
+from serverClass import Server
 
-IP = socket.gethostbyname(socket.gethostname())
-
-clients = {}
-
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.bind((IP, PORT))
-print("[RUNNING] Server is running...")
-
-s.listen()
+server = Server()
+server.initializeSocket()
 
 while True:
-    clientSocket, address = s.accept()
+    clientSocket, address = server.s.accept()
 
-    len_nick = clientSocket.recv(HEADER).decode(FORMAT)
-    nickname = clientSocket.recv(int(len_nick)).decode(FORMAT)
+    len_nick = clientSocket.recv(server.HEADER).decode(server.FORMAT)
+    nickname = clientSocket.recv(int(len_nick)).decode(server.FORMAT)
 
-    clients[clientSocket] = nickname
+    server.clients[clientSocket] = nickname
 
-    thread = threading.Thread(target=serverFunction.client_interaction, args=(clientSocket, address, nickname))
+    thread = threading.Thread(target=server.handleClient, args=(clientSocket, nickname))
     thread.start()
 
     print(f"[CONNECTION] Connection established with {nickname}. Sending to others...")
-    serverFunction.broadcast(clients, clientSocket, f"{nickname} connected", str(len(f"{nickname} connected")))
+    server.broadcast(clientSocket, f"{nickname} connected", str(len(f"{nickname} connected")))

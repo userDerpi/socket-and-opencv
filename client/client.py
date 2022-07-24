@@ -1,17 +1,19 @@
 import socket
 import threading
-import clientFunction
-from constants import *
+from textColored import Bcolors
+from clientClass import Client
 
-IP = socket.gethostbyname(socket.gethostname())
+user = Client()
+user.nickname = input("Type your nickname: ")
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect((IP, PORT))
+try:
 
-nickname = input("Type your nickname: ")
+    user.initializeSocket()
+    send_thread = threading.Thread(target=user.sendMessage)
+    send_thread.start()
 
-send_thread = threading.Thread(target=clientFunction.send, args=(s, nickname))
-send_thread.start()
+    receive_thread = threading.Thread(target=user.receiveMessage)
+    receive_thread.start()
 
-receive_thread = threading.Thread(target=clientFunction.receive)
-receive_thread.start()
+except socket.error or threading.ThreadError:
+    print(f"{Bcolors.FAIL} An erros has occured")
